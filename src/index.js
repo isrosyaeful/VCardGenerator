@@ -1,3 +1,3 @@
-import GenerateVCard from "./GenerateVCard.js";
+import GenerateVCard from "./GenerateVCardV2.js";
 
 GenerateVCard();

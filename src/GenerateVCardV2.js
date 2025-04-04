@@ -1,16 +1,16 @@
 //import module
-import QRCode from './QRCode.js';
+import QRCode2 from './QRCode2.js';
 import XLSX from 'xlsx';
 import CropImages from './CropImages.js';
 import { createVBackPNG, createVFrontPNG } from "./screnshoot.js";
 
 export default function GenerateVCard() {
-  
+
 
   // Generate QR Code using vCard format
   const GenerateQRContent = async (data) => {
-    
-    const QR = new QRCode();
+
+    const QR = new QRCode2();
     const qrText =
       `BEGIN:VCARD\nVERSION:3.0\nN:**LAST_NAME**;**FIRST_NAME**\n` +
       `FN:**FIRST_NAME** **LAST_NAME**\nORG:**COMPANY_NAME**\nTITLE:**JOB**\n` +
@@ -20,8 +20,8 @@ export default function GenerateVCard() {
 
     for (let i = 0 + 1; i < data.length; i++) {
       let text = qrText;
-      text = text.replace(/\*\*FIRST_NAME\*\*/g, data[i][0]);
-      text = text.replace(/\*\*LAST_NAME\*\*/g, data[i][1] ? data[i][1] : "");
+      text = text.replace(/\*\*FIRST_NAME\*\*/g, data[i][0].trim());
+      text = text.replace(/\*\*LAST_NAME\*\*/g, data[i][1] ? data[i][1].trim() : "");
       text = text.replace(/\*\*COMPANY_NAME\*\*/g, data[i][3]);
       text = text.replace(/\*\*JOB\*\*/g, data[i][4]);
       text = text.replace(/\*\*STREET_ADDR\*\*/g, data[i][9]);
@@ -35,7 +35,7 @@ export default function GenerateVCard() {
       text = text.replace(/\*\*EMAIL\*\*/g, data[i][5] ? data[i][5] : "");
       text = text.replace(/\*\*WEBSITE\*\*/g, data[i][8]);
 
-      let filename = "qrc_" + data[i][0] + (data[i][1] ? " " + data[i][1] : "");
+      let filename = "qrc_" + data[i][0].trim() + (data[i][1] ? " " + data[i][1].trim() : "");
       filename = filename.split(" ").join("_");
 
       if (text.includes("undefined")) {
@@ -44,6 +44,8 @@ export default function GenerateVCard() {
         console.log(text + "\n");
         break;
       } else {
+        console.log("qr content");
+        console.log(text)
         QR.createQR(text, filename);
 
         console.log(filename);
@@ -53,33 +55,36 @@ export default function GenerateVCard() {
   };
 
   const GenerateVCardImage = async (data) => {
-    for (let i = 0 + 1; i < data.length; i++) {
-      // console.log(data[i]);
-      let filename = "qrc_" + data[i][0] + (data[i][1] ? " " + data[i][1] : "");
-      //   filename.replace(/ /g, "_");
-      filename = filename.split(" ").join("_");
-      const imagePath = "../qrcode_cropped/" + filename + ".png";
-      //  createVBackPNG(image)
-      await createVFrontPNG(
-        data[i][2].toUpperCase(),
-        data[i][0] + (data[i][1] ? " " + data[i][1] : "")
-      );
-      await createVBackPNG(
-        imagePath,
-        data[i][0] + (data[i][1] ? " " + data[i][1] : ""),
-        data[i][4],
-        data[i][3],
-        data[i][7],
-        data[i][5],
-        data[i][8]
-      );
-      console.log("vCard generated - "+filename);
-    }
+    try {
+
+      for (let i = 0 + 1; i < data.length; i++) {
+        // console.log(data[i]);
+        let filename = "qrc_" + data[i][0].trim() + (data[i][1] ? " " + data[i][1].trim() : "");
+        //   filename.replace(/ /g, "_");
+        filename = filename.split(" ").join("_");
+        const imagePath = "../qrcode_cropped/" + filename + ".png";
+        //  createVBackPNG(image)
+        await createVFrontPNG(
+          data[i][2].toUpperCase(),
+          data[i][0].trim() + (data[i][1] ? " " + data[i][1].trim() : "")
+        );
+        await createVBackPNG(
+          imagePath,
+          data[i][0].trim() + (data[i][1] ? " " + data[i][1].trim() : ""),
+          data[i][4],
+          data[i][3],
+          data[i][7],
+          data[i][5],
+          data[i][8]
+        );
+        console.log("vCard generated - " + filename);
+      }
+    } catch (err) { console.log(err); }
   };
 
   const main = async () => {
     //initialize
-    const QR = new QRCode();
+    const QR = new QRCode2();
     const masterDataDir = "../data/master_data2.xlsx";
 
     // Load the Excel file
@@ -91,7 +96,7 @@ export default function GenerateVCard() {
     // Parse the worksheet data into an array of objects
     const data = XLSX.utils.sheet_to_json(worksheet, { header: 1 });
     console.log(data.length);
-    
+
     await GenerateQRContent(data);
 
     // // delay for qr code to be generated
@@ -101,6 +106,7 @@ export default function GenerateVCard() {
 
     await CropImages();
 
+    // delay for qr code to be generated
     await new Promise((resolve) => {
       setTimeout(resolve, 5000);
     });
